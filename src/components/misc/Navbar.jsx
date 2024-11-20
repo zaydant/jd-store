@@ -38,8 +38,8 @@ import {
 export default function NavBar() {
   const { user, token, logout } = useAuth();
   const router = useRouter();
-  const [myCart, setMyCart] = useState([])
-  const [error, setError] = useState(null)
+  const [myCart, setMyCart] = useState([]);
+  const [error, setError] = useState(null);
 
   const handleLogout = () => {
     logout();
@@ -53,7 +53,7 @@ export default function NavBar() {
         setError(null);
       } catch (error) {
         setError(error.message);
-        console.error('Error fetching cart:', error);
+        console.error("Error fetching cart:", error);
       }
     };
 
@@ -146,22 +146,31 @@ export default function NavBar() {
                         </SheetDescription>
                       </SheetHeader>
                       <div className="flex flex-col mt-12 mb-6 space-y-8 h-[calc(100vh-280px)] overflow-y-auto">
-                        <CartItem
-                          imageSrc="https://signore.store/cdn/shop/files/Artboard20_88ee7009-5320-4a87-830b-0640b5ce576d.jpg?v=1729245375&width=500"
-                          name="Polo Halfzip Suede - Gray"
-                          price="Rp. 249.000"
-                          size="L"
-                          quantity={1}
-                          onIncreaseQuantity={() => {
-                            /* Increase quantity handler */
-                          }}
-                          onDecreaseQuantity={() => {
-                            /* Decrease quantity handler */
-                          }}
-                          onDelete={() => {
-                            /* Delete item handler */
-                          }}
-                        />
+                        {myCart.length > 0 ? (
+                          myCart.map((item, index) => (
+                            <CartItem
+                              key={index}
+                              imageSrc={item.product.image_url} // Adjust according to the structure of your cart item
+                              name={item.product.name}
+                              price={item.product.price}
+                              size={item.size}
+                              quantity={item.quantity}
+                              onIncreaseQuantity={() => {
+                                /* Increase quantity handler */
+                              }}
+                              onDecreaseQuantity={() => {
+                                /* Decrease quantity handler */
+                              }}
+                              onDelete={() => {
+                                /* Delete item handler */
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <p className="text-center text-gray-500">
+                            Your cart is empty.
+                          </p>
+                        )}
                       </div>
                       <div className="flex flex-col gap-4 absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
                         <div className="flex justify-between items-center">
