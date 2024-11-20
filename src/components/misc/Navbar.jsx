@@ -1,14 +1,19 @@
 "use client";
 
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import CartItem from "./navComponents/cart/cartItem";
-import { getCartByUid } from "@/services/cartServices";
+import {
+  getCartByUid,
+  deleteCartItem,
+  editItemQuantity,
+} from "@/services/cartServices";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { formatToIDR } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import {
   Sheet,
   SheetClose,
@@ -38,11 +43,69 @@ import {
 export default function NavBar() {
   const { user, token, logout } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [myCart, setMyCart] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleDelete = async (id) => {
+    setLoading(true);
+    try {
+      await deleteCartItem(id, token);
+      toast({
+        title: "Success",
+        description: "Item removed from cart successfully.",
+      });
+      const updatedCart = await getCartByUid(user.uid, token);
+      setMyCart(updatedCart);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove item from cart.",
+      });
+      console.error("Error deleting cart item:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditQuantity = async (id, newQuantity) => {
+    setLoading(true);
+    try {
+      await editItemQuantity(id, token, newQuantity);
+      toast({
+        title: "Success",
+        description: "Item quantity updated successfully.",
+      });
+      const updatedCart = await getCartByUid(user.uid, token);
+      setMyCart(updatedCart);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update item quantity.",
+      });
+      console.error("Error updating item quantity:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIncreaseQuantity = (item) => {
+    const newQuantity = item.quantity + 1;
+    handleEditQuantity(item.id, newQuantity);
+  };
+
+  const handleDecreaseQuantity = (item) => {
+    if (item.quantity > 1) {
+      const newQuantity = item.quantity - 1;
+      handleEditQuantity(item.id, newQuantity);
+    } else {
+      handleDelete(item.id); // Delete item if quantity becomes zero
+    }
   };
 
   useEffect(() => {
@@ -61,6 +124,11 @@ export default function NavBar() {
       fetchCart();
     }
   }, [user, token]);
+
+  // Calculate subtotal
+  const subtotal = myCart.reduce((total, item) => {
+    return total + item.product.price * item.quantity;
+  }, 0);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white montserrat">
@@ -150,20 +218,15 @@ export default function NavBar() {
                           myCart.map((item, index) => (
                             <CartItem
                               key={index}
-                              imageSrc={item.product.image_url} // Adjust according to the structure of your cart item
+                              imageSrc={item.product.image_url}
                               name={item.product.name}
-                              price={item.product.price}
+                              price={formatToIDR(item.product.price)}
                               size={item.size}
                               quantity={item.quantity}
-                              onIncreaseQuantity={() => {
-                                /* Increase quantity handler */
-                              }}
-                              onDecreaseQuantity={() => {
-                                /* Decrease quantity handler */
-                              }}
-                              onDelete={() => {
-                                /* Delete item handler */
-                              }}
+                              onIncreaseQuantity={() => handleIncreaseQuantity(item)}
+                              onDecreaseQuantity={() => handleDecreaseQuantity(item)}
+                              onDelete={() => handleDelete(item.id)}
+                              disabled={loading}
                             />
                           ))
                         ) : (
@@ -176,7 +239,7 @@ export default function NavBar() {
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Subtotal</span>
                           <span className="text-sm font-medium">
-                            Rp. 249.000
+                            {formatToIDR(subtotal)}
                           </span>
                         </div>
                         <SheetFooter className="w-full">
