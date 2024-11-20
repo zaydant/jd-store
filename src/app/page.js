@@ -1,7 +1,7 @@
-import Navbar from "../components/misc/Navbar.jsx"
-import Hero from "../components/home/Hero.jsx"
-import Catalog from "../components/home/Catalog.jsx"
-import Footer from "../components/home/Footer.jsx"
+import Navbar from "../components/misc/navbar.jsx"
+import Hero from "../components/home/hero.jsx"
+import Catalog from "../components/home/catalog.jsx"
+import Footer from "../components/home/footer.jsx"
 
 export default function Home() {
   return (

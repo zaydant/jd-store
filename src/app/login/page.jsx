@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux"; // Import Redux hooks
-import { setUser, setToken } from "@/store/slices/authSlice"; // Import Redux actions
+import { setUser, setToken } from "@/store/slices/AuthSlice"; // Import Redux actions
 import {
   Card,
   CardContent,
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Snackbar } from "@mui/material";
-import { loginUserService } from "@/services/AuthServices";
+import { loginUserService } from "@/services/authServices.js";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);

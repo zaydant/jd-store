@@ -3,8 +3,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import CartItem from "./NavComponents/CartItem";
-import { getCartByUid } from "@/services/CartServices";
+import CartItem from "./navComponents/cart/cartItem";
+import { getCartByUid } from "@/services/cartServices";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
