@@ -1,3 +1,4 @@
+import ReduxProvider from "@/store/reduxProvider";
 import "./globals.css";
 import { Montserrat } from "next/font/google";
 
@@ -15,7 +16,9 @@ const montserrat = Montserrat({
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={montserrat.variable}>{children}</body>
+      <body className={montserrat.variable}>
+        <ReduxProvider>{children}</ReduxProvider>
+      </body>
     </html>
   );
 }

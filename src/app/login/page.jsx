@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "../../store/authStore";
+import { useDispatch } from "react-redux"; // Import Redux hooks
+import { setUser, setToken } from "@/store/slices/authSlice"; // Import Redux actions
 import {
   Card,
   CardContent,
@@ -24,7 +25,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const { setUser, setToken } = useAuthStore();
+  const dispatch = useDispatch();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -35,14 +36,14 @@ export default function LoginPage() {
     try {
       setLoading(true);
       const response = await loginUserService({ email, password });
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
 
       if (response.user) {
-        setUser(response.user.user);
-        setToken(response.user.token);
+        dispatch(setUser(response.user.user));
+        dispatch(setToken(response.user.token));
         router.push("/");
       } else {
         throw new Error("Invalid response from server");
@@ -100,7 +101,7 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter className="flex gap-2">
               <Button className="w-[50px] p-4 bg-white border-2 text-black hover:bg-slate-200" asChild>
-                <Link href={'/'}>&lt;</Link>  
+                <Link href={"/"}>&lt;</Link>
               </Button>
               <Button className="w-full" type="submit" disabled={loading}>
                 {loading ? "Signing In..." : "Sign In"}
@@ -121,7 +122,7 @@ export default function LoginPage() {
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-          <p className="text-md">{error}</p>
+        <p className="text-md">{error}</p>
       </Snackbar>
     </div>
   );
