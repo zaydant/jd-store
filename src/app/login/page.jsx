@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux"; // Import Redux hooks
-import { setUser, setToken } from "@/store/slices/AuthSlice"; // Import Redux actions
+import { setUser, setToken } from "@/store/slices/authSlice"; // Import Redux actions
 import {
   Card,
   CardContent,

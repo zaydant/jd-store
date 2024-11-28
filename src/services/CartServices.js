@@ -61,3 +61,26 @@ export const editItemQuantity = async (id, token, quantity) => {
     throw new Error("Failed to edit item quantity. Please try again later.");
   }
 }
+
+export const addToCart = async (token, uid, pid, size, quantity) => {
+  try {
+    const response = await axios.post(`${baseUrl}/addToCart`, {
+      user_id : uid,
+      product_id : pid,
+      size : size,
+      quantity : quantity
+    }, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+    })
+    return response.data.data
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.response?.data);
+      throw new Error(`Failed to add item to cart: ${error.response?.data?.message || error.message}`);
+    }
+    console.error('Error:', error);
+    throw new Error("Failed to add item to cart. Please try again later.");
+  }
+}

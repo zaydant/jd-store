@@ -14,21 +14,21 @@ const CartItem = ({
   onDelete
 }) => {
   return (
-    <div className="flex">
-      <div className="flex pr-4">
+    <div className="grid grid-cols-2">
+      <div className="">
         <Image
           src={imageSrc}
           alt={`${name} product image`}
-          height={100}
+          height={125}
           width={125}
         //   fill={true}
         />
       </div>
-      <div className="flex flex-col space-y-1">
+      <div className="space-y-1">
         <h1 className="font-medium">{name}</h1>
         <p className="font-light text-slate-600">{price}</p>
         <p className="font-light text-slate-400">{size}</p>
-        <div className="flex space-x-1">
+        <div className="flex justify-start space-x-1">
           <div className="flex items-center border rounded-md">
             <Button
               variant="ghost"

@@ -1,6 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setCart,
+  removeItemFromCart,
+  updateItemQuantity,
+} from "../../store/slices/cartSlice";
 import Image from "next/image";
 import CartItem from "./navComponents/cart/cartItem";
 import {
@@ -43,8 +49,9 @@ import {
 export default function NavBar() {
   const { user, token, logout } = useAuth();
   const router = useRouter();
+  const dispatch = useDispatch();
   const { toast } = useToast();
-  const [myCart, setMyCart] = useState([]);
+  const myCart = useSelector((state) => state.cart.cartItems);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -53,58 +60,25 @@ export default function NavBar() {
   };
 
   const handleDelete = async (id) => {
-    setLoading(true);
     try {
       await deleteCartItem(id, token);
-      toast({
-        title: "Success",
-        description: "Item removed from cart successfully.",
-      });
-      const updatedCart = await getCartByUid(user.uid, token);
-      setMyCart(updatedCart);
+      dispatch(removeItemFromCart(id));
+      toast({ title: "Success", description: "Item removed from cart." });
     } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to remove item from cart.",
+        description: "Failed to remove item from cart.",
       });
-      console.error("Error deleting cart item:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleEditQuantity = async (id, newQuantity) => {
-    setLoading(true);
     try {
       await editItemQuantity(id, token, newQuantity);
-      toast({
-        title: "Success",
-        description: "Item quantity updated successfully.",
-      });
-      const updatedCart = await getCartByUid(user.uid, token);
-      setMyCart(updatedCart);
+      dispatch(updateItemQuantity({ id, quantity: newQuantity })); // Update Redux state
+      toast({ title: "Success", description: "Item quantity updated." });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update item quantity.",
-      });
-      console.error("Error updating item quantity:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleIncreaseQuantity = (item) => {
-    const newQuantity = item.quantity + 1;
-    handleEditQuantity(item.id, newQuantity);
-  };
-
-  const handleDecreaseQuantity = (item) => {
-    if (item.quantity > 1) {
-      const newQuantity = item.quantity - 1;
-      handleEditQuantity(item.id, newQuantity);
-    } else {
-      handleDelete(item.id); // Delete item if quantity becomes zero
+      toast({ title: "Error", description: "Failed to update item quantity." });
     }
   };
 
@@ -112,10 +86,8 @@ export default function NavBar() {
     const fetchCart = async () => {
       try {
         const cart = await getCartByUid(user.uid, token);
-        setMyCart(cart);
-        setError(null);
+        dispatch(setCart(cart)); // Update Redux state
       } catch (error) {
-        setError(error.message);
         console.error("Error fetching cart:", error);
       }
     };
@@ -123,12 +95,13 @@ export default function NavBar() {
     if (user && token) {
       fetchCart();
     }
-  }, [user, token]);
+  }, [user, token, dispatch]);
 
   // Calculate subtotal
-  const subtotal = myCart.reduce((total, item) => {
-    return total + item.product.price * item.quantity;
-  }, 0);
+  const subtotal = myCart.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white montserrat">
@@ -213,28 +186,48 @@ export default function NavBar() {
                           These are items in your cart!
                         </SheetDescription>
                       </SheetHeader>
-                      <div className="flex flex-col mt-12 mb-6 space-y-8 h-[calc(100vh-280px)] overflow-y-auto">
+                      <div className="flex flex-col mt-12 mb-6 space-y-8 h-[calc(100vh-280px)] overflow-y-auto no-scrollbar">
                         {myCart.length > 0 ? (
-                          myCart.map((item, index) => (
+                          myCart.map((item) => (
                             <CartItem
-                              key={index}
+                              key={item.id}
                               imageSrc={item.product.image_url}
                               name={item.product.name}
                               price={formatToIDR(item.product.price)}
                               size={item.size}
                               quantity={item.quantity}
-                              onIncreaseQuantity={() => handleIncreaseQuantity(item)}
-                              onDecreaseQuantity={() => handleDecreaseQuantity(item)}
-                              onDelete={() => handleDelete(item.id)}
-                              disabled={loading}
+                              onIncreaseQuantity={
+                                () =>
+                                  setTimeout(
+                                    () =>
+                                      handleEditQuantity(
+                                        item.id,
+                                        item.quantity + 1
+                                      ),
+                                    0
+                                  ) // Avoid triggering updates during render
+                                  // console.log(myCart)
+                              }
+                              onDecreaseQuantity={() =>
+                                setTimeout(
+                                  () =>
+                                    handleEditQuantity(
+                                      item.id,
+                                      item.quantity - 1
+                                    ),
+                                  0
+                                )
+                              }
+                              onDelete={() =>
+                                setTimeout(() => handleDelete(item.id), 0)
+                              }
                             />
                           ))
                         ) : (
-                          <p className="text-center text-gray-500">
-                            Your cart is empty.
-                          </p>
+                          <p>Your cart is empty</p>
                         )}
                       </div>
+
                       <div className="flex flex-col gap-4 absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Subtotal</span>
@@ -268,7 +261,7 @@ export default function NavBar() {
 
 function SearchBar() {
   return (
-    <div className="relative hidden md:flex">
+    <div className="relative hidden lg:flex">
       <SearchIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
       <Input
         type="search"

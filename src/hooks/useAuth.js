@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { setUser, setToken } from "@/store/slices/AuthSlice";
+import { setUser, setToken } from "@/store/slices/authSlice"
 
 export function useAuth() {
   const user = useSelector((state) => state.auth.user);
